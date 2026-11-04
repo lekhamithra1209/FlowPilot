@@ -1,35 +1,38 @@
 # FlowPilot – workflow automation (full stack)
 
-Front end: HTML/CSS/JS (served from `public/`). Back end: Node.js + Express + SQLite, JWT login, REST API.
+Front end: HTML/CSS/JS in `public/`. Back end: Node.js + Express, SQLite (pure JavaScript, nothing to compile), JWT login.
 
-## Run it
+## Run it (needs Node.js 18 or newer: https://nodejs.org)
+1. Unzip, then open a terminal INSIDE the `flowpilot` folder (the one with `package.json`).
+2. Run:
 ```
 npm install
 npm start
 ```
-Open http://localhost:3000. The database file is created and filled with sample data on first start.
-Demo login (the app signs in automatically): mithra@company.com / password
+3. Open http://localhost:3000
+
+If port 3000 is busy: `PORT=3001 npm start` (Mac/Linux) or `set PORT=3001 && npm start` (Windows cmd).
+
+## Accounts
+Anyone can click "Create an account" with their name, email and a password (8+ characters), then sign in later with the same email and password.
+Each account has its own workflows, runs, integrations and settings. A new account starts with sample data so the screens are not empty.
 
 ## What the back end does
-- JWT login (`POST /api/auth/login`) and a bearer-token check on every other route
-- Rate limiting (120 requests/min per route, 10 login attempts/min) that returns 429
-- Workflows: list, create, edit, delete, on/off toggle (`/api/workflows`)
-- Execution engine (`engine.js`): runs steps one at a time, checks conditions, fails a step when its
-  integration is not connected, and writes a step-by-step log to the `runs` table
-- Runs and retry (`/api/runs`, `/api/runs/:id/retry`), integrations (`/api/integrations`),
-  dashboard and analytics numbers (`/api/stats`), settings (`/api/settings`)
-- Input validation and parameterized SQL queries
+- Sign up / sign in with bcrypt-hashed passwords and JWT tokens (7 days)
+- Every API route needs the token, and every query only touches the signed-in user's rows
+- Rate limiting (150 requests/min per route group, 10 sign-in or sign-up attempts/min), returns 429
+- Workflows: list, create, edit, delete, on/off (`/api/workflows`)
+- Execution engine (`engine.js`): runs steps in order, checks conditions, fails a step when its integration is not connected, saves a step-by-step log
+- Runs + retry, integrations, dashboard/analytics numbers, settings
+- Input validation and parameterized SQL
 
 ## Files
 ```
 server.js   routes, auth, rate limiter
-db.js       SQLite schema + sample data
+db.js       database + starter data for new accounts
 engine.js   workflow execution engine
-public/     the web app
+public/     the web app (login, dashboard, library, builder, integrations, monitor, analytics, settings)
 ```
 
-## Try this
-Turn off Gmail in the Integration hub, run "Lead follow-up", and watch the run fail with a clear message in the monitor.
-
-## Before real use
-Set `JWT_SECRET` and `PORT` as environment variables, add a real sign-up/login screen, and move to MySQL/Postgres if you need more than one server.
+## Before putting it online
+Set `JWT_SECRET` (a long random string) and `PORT` as environment variables. The database is the file `flowpilot-data.db`; on a host with a temporary disk, move to a hosted database (Postgres/MySQL).
